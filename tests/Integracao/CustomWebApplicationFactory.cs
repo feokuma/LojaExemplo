@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using LojaExemplo.Repositorios;
 
 namespace LojaExemplo.Testes.Integracao
 {
@@ -47,6 +48,19 @@ namespace LojaExemplo.Testes.Integracao
         {
             var scope = CreateScope();
             return scope.ServiceProvider.GetRequiredService<T>();
+        }
+
+        /// <summary>
+        /// Limpa todos os dados dos repositórios para garantir isolamento entre testes.
+        /// </summary>
+        public void LimparRepositorios()
+        {
+            using var scope = Services.CreateScope();
+            var repositorioPedidos = scope.ServiceProvider.GetRequiredService<IRepositorioDePedidos>();
+            var repositorioProdutos = scope.ServiceProvider.GetRequiredService<IRepositorioDeProdutos>();
+            
+            repositorioPedidos.Limpar();
+            repositorioProdutos.ResetarDadosPadrao(); // Reseta para os dados iniciais
         }
     }
 }

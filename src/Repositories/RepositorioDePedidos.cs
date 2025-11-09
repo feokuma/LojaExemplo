@@ -9,6 +9,7 @@ namespace LojaExemplo.Repositorios
         Task<List<Pedido>> ObterPorClienteAsync(string clienteEmail);
         Task<List<Pedido>> ObterTodosAsync();
         Task<bool> AtualizarAsync(Pedido pedido);
+        void Limpar();
     }
 
     public class RepositorioDePedidos : IRepositorioDePedidos
@@ -60,6 +61,12 @@ namespace LojaExemplo.Repositorios
                 return true;
             }
             return false;
+        }
+
+        public void Limpar()
+        {
+            _pedidos.Clear();
+            _proximoId = 1;
         }
     }
 }

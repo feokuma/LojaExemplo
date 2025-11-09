@@ -5,14 +5,12 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace LojaExemplo.Testes.Integracao
 {
-    public class ServicoDePedidosIntegracaoTests : IClassFixture<CustomWebApplicationFactory>
+    public class ServicoDePedidosIntegracaoTests : BaseIntegrationTest
     {
-        private readonly CustomWebApplicationFactory _factory;
         private readonly IServiceScope _scope;
 
-        public ServicoDePedidosIntegracaoTests(CustomWebApplicationFactory factory)
+        public ServicoDePedidosIntegracaoTests(CustomWebApplicationFactory factory) : base(factory)
         {
-            _factory = factory;
             _scope = _factory.CreateScope();
         }
 

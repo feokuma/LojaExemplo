@@ -6,14 +6,12 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace LojaExemplo.Testes.Integracao
 {
-    public class ServicoDePagamentosIntegracaoTests : IClassFixture<CustomWebApplicationFactory>
+    public class ServicoDePagamentosIntegracaoTests : BaseIntegrationTest
     {
-        private readonly CustomWebApplicationFactory _factory;
         private readonly IServiceScope _scope;
 
-        public ServicoDePagamentosIntegracaoTests(CustomWebApplicationFactory factory)
+        public ServicoDePagamentosIntegracaoTests(CustomWebApplicationFactory factory) : base(factory)
         {
-            _factory = factory;
             _scope = _factory.CreateScope();
         }
 

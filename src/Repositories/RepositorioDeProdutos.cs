@@ -13,6 +13,8 @@ namespace LojaExemplo.Repositorios
         Task<bool> VerificarEstoqueDisponivel(int produtoId, int quantidade);
         Task<bool> ReduzirEstoqueAsync(int produtoId, int quantidade);
         Task<bool> AdicionarEstoqueAsync(int produtoId, int quantidade);
+        void Limpar();
+        void ResetarDadosPadrao();
     }
 
     public class RepositorioDeProdutos : IRepositorioDeProdutos
@@ -113,6 +115,22 @@ namespace LojaExemplo.Repositorios
                 return true;
             }
             return false;
+        }
+
+        public void Limpar()
+        {
+            _produtos.Clear();
+        }
+
+        public void ResetarDadosPadrao()
+        {
+            _produtos.Clear();
+            _produtos.AddRange(new List<Produto>
+            {
+                new Produto { Id = 1, Nome = "Notebook", Preco = 2500.00m, EstoqueDisponivel = 10, Descricao = "Notebook para trabalho", DataCriacao = DateTime.Now.AddDays(-30), Ativo = true },
+                new Produto { Id = 2, Nome = "Mouse", Preco = 50.00m, EstoqueDisponivel = 25, Descricao = "Mouse wireless", DataCriacao = DateTime.Now.AddDays(-20), Ativo = true },
+                new Produto { Id = 3, Nome = "Teclado", Preco = 150.00m, EstoqueDisponivel = 15, Descricao = "Teclado mecânico", DataCriacao = DateTime.Now.AddDays(-15), Ativo = true }
+            });
         }
     }
 }

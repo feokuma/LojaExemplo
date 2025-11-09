@@ -9,16 +9,12 @@ namespace LojaExemplo.Testes.Integracao
     /// Exemplo de testes de integração usando HttpClient para testar endpoints da API.
     /// Esta classe demonstra como fazer requisições HTTP completas através do
     /// WebApplicationFactory para testar controllers.
+    /// Herda de BaseIntegrationTest para garantir isolamento entre testes.
     /// </summary>
-    public class PedidosControllerIntegracaoTests : IClassFixture<CustomWebApplicationFactory>
+    public class PedidosControllerIntegracaoTests : BaseIntegrationTest
     {
-        private readonly HttpClient _client;
-        private readonly CustomWebApplicationFactory _factory;
-
-        public PedidosControllerIntegracaoTests(CustomWebApplicationFactory factory)
+        public PedidosControllerIntegracaoTests(CustomWebApplicationFactory factory) : base(factory)
         {
-            _factory = factory;
-            _client = factory.CreateClient();
         }
 
         /// <summary>
