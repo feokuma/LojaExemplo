@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using LojaExemplo.Modelos;
 using LojaExemplo.Servicos;
+using LojaExemplo.DTOs;
 
 namespace LojaExemplo.Controllers
 {
@@ -121,17 +122,5 @@ namespace LojaExemplo.Controllers
             var metodos = await _servicoDePagamentos.ObterMetodosPagamentoDisponiveisAsync();
             return Ok(metodos);
         }
-    }
-
-    public class CriarPedidoRequest
-    {
-        public string ClienteEmail { get; set; } = string.Empty;
-        public List<ItemDePedido> Itens { get; set; } = new List<ItemDePedido>();
-    }
-
-    public class ProcessarPagamentoRequest
-    {
-        public string MetodoPagamento { get; set; } = string.Empty;
-        public decimal Valor { get; set; }
     }
 }
