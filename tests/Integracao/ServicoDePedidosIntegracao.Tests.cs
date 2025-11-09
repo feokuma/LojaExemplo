@@ -1,16 +1,25 @@
-using Xunit;
 using LojaExemplo.Servicos;
 using LojaExemplo.Repositorios;
 using LojaExemplo.Modelos;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace LojaExemplo.Testes.Integracao
 {
-    public class ServicoDePedidosIntegracaoTests
+    public class ServicoDePedidosIntegracaoTests : IClassFixture<CustomWebApplicationFactory>
     {
+        private readonly CustomWebApplicationFactory _factory;
+        private readonly IServiceScope _scope;
+
+        public ServicoDePedidosIntegracaoTests(CustomWebApplicationFactory factory)
+        {
+            _factory = factory;
+            _scope = _factory.CreateScope();
+        }
+
         private (IRepositorioDeProdutos, IServicoDePedidos) CriarServicos()
         {
-            var repositorio = new RepositorioDeProdutos();
-            var servicoPedidos = new ServicoDePedidos(repositorio);
+            var repositorio = _scope.ServiceProvider.GetRequiredService<IRepositorioDeProdutos>();
+            var servicoPedidos = _scope.ServiceProvider.GetRequiredService<IServicoDePedidos>();
             return (repositorio, servicoPedidos);
         }
 

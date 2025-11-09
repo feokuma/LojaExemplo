@@ -7,9 +7,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 
 // Register application services
-builder.Services.AddScoped<IRepositorioDeProdutos, RepositorioDeProdutos>();
+builder.Services.AddSingleton<IRepositorioDeProdutos, RepositorioDeProdutos>();
+builder.Services.AddSingleton<IRepositorioDePedidos, RepositorioDePedidos>();
 builder.Services.AddScoped<IServicoDePedidos, ServicoDePedidos>();
-builder.Services.AddScoped<IServicoDePagamentos, ServicoDePagamentos>();
+builder.Services.AddSingleton<IServicoDePagamentos, ServicoDePagamentos>();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -31,3 +32,6 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+// Make the implicit Program class accessible for testing
+public partial class Program { }

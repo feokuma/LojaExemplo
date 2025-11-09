@@ -18,13 +18,12 @@ namespace LojaExemplo.Servicos
     public class ServicoDePedidos : IServicoDePedidos
     {
         private readonly IRepositorioDeProdutos _repositorioDeProdutos;
-        private readonly List<Pedido> _pedidos;
-        private int _proximoId = 1;
+        private readonly IRepositorioDePedidos _repositorioDePedidos;
 
-        public ServicoDePedidos(IRepositorioDeProdutos repositorioDeProdutos)
+        public ServicoDePedidos(IRepositorioDeProdutos repositorioDeProdutos, IRepositorioDePedidos repositorioDePedidos)
         {
             _repositorioDeProdutos = repositorioDeProdutos;
-            _pedidos = new List<Pedido>();
+            _repositorioDePedidos = repositorioDePedidos;
         }
 
         public async Task<Pedido> CriarPedidoAsync(string clienteEmail, List<ItemDePedido> itens)
@@ -53,7 +52,6 @@ namespace LojaExemplo.Servicos
 
             var pedido = new Pedido
             {
-                Id = _proximoId++,
                 DataPedido = DateTime.Now,
                 ClienteEmail = clienteEmail,
                 Status = StatusPedido.Pendente,
@@ -61,20 +59,17 @@ namespace LojaExemplo.Servicos
                 ValorTotal = valorTotal
             };
 
-            _pedidos.Add(pedido);
-            return pedido;
+            return await _repositorioDePedidos.AdicionarAsync(pedido);
         }
 
         public async Task<Pedido?> ObterPedidoPorIdAsync(int id)
         {
-            await Task.Delay(10);
-            return _pedidos.FirstOrDefault(p => p.Id == id);
+            return await _repositorioDePedidos.ObterPorIdAsync(id);
         }
 
         public async Task<List<Pedido>> ObterPedidosPorClienteAsync(string clienteEmail)
         {
-            await Task.Delay(10);
-            return _pedidos.Where(p => p.ClienteEmail.Equals(clienteEmail, StringComparison.OrdinalIgnoreCase)).ToList();
+            return await _repositorioDePedidos.ObterPorClienteAsync(clienteEmail);
         }
 
         public async Task<bool> ConfirmarPedidoAsync(int pedidoId)
@@ -91,6 +86,7 @@ namespace LojaExemplo.Servicos
             }
 
             pedido.Status = StatusPedido.Confirmado;
+            await _repositorioDePedidos.AtualizarAsync(pedido);
             return true;
         }
 
@@ -110,6 +106,7 @@ namespace LojaExemplo.Servicos
             // }
 
             pedido.Status = StatusPedido.Cancelado;
+            await _repositorioDePedidos.AtualizarAsync(pedido);
             return true;
         }
 
@@ -176,7 +173,6 @@ namespace LojaExemplo.Servicos
 
             var pedido = new Pedido
             {
-                Id = _proximoId++,
                 DataPedido = DateTime.Now,
                 ClienteEmail = clienteEmail,
                 Status = StatusPedido.Pendente,
@@ -184,8 +180,7 @@ namespace LojaExemplo.Servicos
                 ValorTotal = valorFinal
             };
 
-            _pedidos.Add(pedido);
-            return pedido;
+            return await _repositorioDePedidos.AdicionarAsync(pedido);
         }
     }
 }

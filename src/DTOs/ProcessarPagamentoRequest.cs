@@ -5,8 +5,9 @@ namespace LojaExemplo.DTOs
     /// </summary>
     /// <param name="MetodoPagamento">Método de pagamento (CartaoCredito, CartaoDebito, Pix, Boleto, TransferenciaBancaria)</param>
     /// <param name="Valor">Valor do pagamento</param>
-    public record ProcessarPagamentoRequest(
-        string MetodoPagamento,
-        decimal Valor
-    );
+    public record ProcessarPagamentoRequest{
+        public required string MetodoPagamento { get; init; }
+        public decimal Valor { get; init; }
+        public int PedidoId { get; init; }
+    }
 }

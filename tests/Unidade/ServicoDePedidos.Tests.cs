@@ -9,12 +9,20 @@ namespace LojaExemplo.Unidade
     public class ServicoDePedidosTests
     {
         private readonly Mock<IRepositorioDeProdutos> _mockRepositorioDeProdutos;
+        private readonly Mock<IRepositorioDePedidos> _mockRepositorioDePedidos;
         private readonly ServicoDePedidos _servicoDePedidos;
+        private int _proximoId = 1;
 
         public ServicoDePedidosTests()
         {
             _mockRepositorioDeProdutos = new Mock<IRepositorioDeProdutos>();
-            _servicoDePedidos = new ServicoDePedidos(_mockRepositorioDeProdutos.Object);
+            _mockRepositorioDePedidos = new Mock<IRepositorioDePedidos>();
+            
+            // Configurar o mock para simular o comportamento de adicionar pedido
+            _mockRepositorioDePedidos.Setup(r => r.AdicionarAsync(It.IsAny<Pedido>()))
+                .ReturnsAsync((Pedido p) => { p.Id = _proximoId++; return p; });
+            
+            _servicoDePedidos = new ServicoDePedidos(_mockRepositorioDeProdutos.Object, _mockRepositorioDePedidos.Object);
         }
 
         [Fact]
@@ -128,6 +136,12 @@ namespace LojaExemplo.Unidade
                 .ReturnsAsync(true);
 
             var pedido = await _servicoDePedidos.CriarPedidoAsync(clienteEmail, itens);
+            
+            // Configurar o mock para retornar o pedido criado
+            _mockRepositorioDePedidos.Setup(r => r.ObterPorIdAsync(pedido.Id))
+                .ReturnsAsync(pedido);
+            _mockRepositorioDePedidos.Setup(r => r.AtualizarAsync(It.IsAny<Pedido>()))
+                .ReturnsAsync(true);
 
             // Act
             var resultado = await _servicoDePedidos.ConfirmarPedidoAsync(pedido.Id);
@@ -140,6 +154,10 @@ namespace LojaExemplo.Unidade
         [Fact]
         public async Task ConfirmarPedidoAsync_ComPedidoInexistente_DeveRetornarFalse()
         {
+            // Arrange
+            _mockRepositorioDePedidos.Setup(r => r.ObterPorIdAsync(999))
+                .ReturnsAsync((Pedido?)null);
+            
             // Act
             var resultado = await _servicoDePedidos.ConfirmarPedidoAsync(999);
 
@@ -164,6 +182,12 @@ namespace LojaExemplo.Unidade
                 .ReturnsAsync(true);
 
             var pedido = await _servicoDePedidos.CriarPedidoAsync(clienteEmail, itens);
+            
+            // Configurar o mock para retornar o pedido criado
+            _mockRepositorioDePedidos.Setup(r => r.ObterPorIdAsync(pedido.Id))
+                .ReturnsAsync(pedido);
+            _mockRepositorioDePedidos.Setup(r => r.AtualizarAsync(It.IsAny<Pedido>()))
+                .ReturnsAsync(true);
 
             // Act
             var resultado = await _servicoDePedidos.CancelarPedidoAsync(pedido.Id);
@@ -207,8 +231,13 @@ namespace LojaExemplo.Unidade
                 .ReturnsAsync(true);
 
             // Criar dois pedidos para o mesmo cliente
-            await _servicoDePedidos.CriarPedidoAsync(clienteEmail, itens);
-            await _servicoDePedidos.CriarPedidoAsync(clienteEmail, itens);
+            var pedido1 = await _servicoDePedidos.CriarPedidoAsync(clienteEmail, itens);
+            var pedido2 = await _servicoDePedidos.CriarPedidoAsync(clienteEmail, itens);
+            
+            // Configurar o mock para retornar os pedidos criados
+            var pedidosList = new List<Pedido> { pedido1, pedido2 };
+            _mockRepositorioDePedidos.Setup(r => r.ObterPorClienteAsync(clienteEmail))
+                .ReturnsAsync(pedidosList);
 
             // Act
             var pedidos = await _servicoDePedidos.ObterPedidosPorClienteAsync(clienteEmail);

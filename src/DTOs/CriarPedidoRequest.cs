@@ -7,8 +7,8 @@ namespace LojaExemplo.DTOs
     /// </summary>
     /// <param name="ClienteEmail">Email do cliente que está realizando o pedido</param>
     /// <param name="Itens">Lista de itens do pedido</param>
-    public record CriarPedidoRequest(
-        string ClienteEmail,
-        List<ItemDePedido> Itens
-    );
+    public record CriarPedidoRequest{
+        public string ClienteEmail { get; init; }
+        public List<ItemDePedido> Itens { get; init; }
+    }
 }
