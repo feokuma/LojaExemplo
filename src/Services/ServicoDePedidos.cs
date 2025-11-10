@@ -11,19 +11,20 @@ namespace LojaExemplo.Servicos
         Task<bool> ConfirmarPedidoAsync(int pedidoId);
         Task<bool> CancelarPedidoAsync(int pedidoId);
         Task<decimal> CalcularValorTotalAsync(List<ItemDePedido> itens);
-        Task<decimal> CalcularDescontoProgressivoAsync(decimal valorTotal, decimal percentualDesconto);
         Task<Pedido> CriarPedidoComDescontoAsync(string clienteEmail, List<ItemDePedido> itens, decimal percentualDesconto);
     }
 
     public class ServicoDePedidos : IServicoDePedidos
     {
         private readonly IRepositorioDeProdutos _repositorioDeProdutos;
+        private readonly IServicoDeDesconto _servicoDeDesconto;
         private readonly List<Pedido> _pedidos;
         private int _proximoId = 1;
 
-        public ServicoDePedidos(IRepositorioDeProdutos repositorioDeProdutos)
+        public ServicoDePedidos(IRepositorioDeProdutos repositorioDeProdutos, IServicoDeDesconto servicoDeDesconto)
         {
             _repositorioDeProdutos = repositorioDeProdutos;
+            _servicoDeDesconto = servicoDeDesconto;
             _pedidos = new List<Pedido>();
         }
 
@@ -80,7 +81,10 @@ namespace LojaExemplo.Servicos
         public async Task<bool> ConfirmarPedidoAsync(int pedidoId)
         {
             var pedido = await ObterPedidoPorIdAsync(pedidoId);
-            if (pedido == null || pedido.Status != StatusPedido.Pendente)
+            if (pedido == null)
+                return false;
+
+            if (!pedido.Confirmar())
                 return false;
 
             // Reduzir estoque dos produtos
@@ -90,26 +94,29 @@ namespace LojaExemplo.Servicos
                     return false;
             }
 
-            pedido.Status = StatusPedido.Confirmado;
             return true;
         }
 
         public async Task<bool> CancelarPedidoAsync(int pedidoId)
         {
             var pedido = await ObterPedidoPorIdAsync(pedidoId);
-            if (pedido == null || pedido.Status == StatusPedido.Cancelado)
+            if (pedido == null)
                 return false;
 
-            // Se o pedido foi confirmado, devolver produtos ao estoque
-            // if (pedido.Status == StatusPedido.Confirmado || pedido.Status == StatusPedido.Pago)
-            // {
-            //     foreach (var item in pedido.Itens)
-            //     {
-            //         await _repositorioDeProdutos.AdicionarEstoqueAsync(item.ProdutoId, item.Quantidade);
-            //     }
-            // }
+            var deveReporEstoque = pedido.DeveReporEstoque();
+            
+            if (!pedido.Cancelar())
+                return false;
 
-            pedido.Status = StatusPedido.Cancelado;
+            // Se o pedido foi confirmado ou pago, devolver produtos ao estoque
+            if (deveReporEstoque)
+            {
+                foreach (var item in pedido.Itens)
+                {
+                    await _repositorioDeProdutos.AdicionarEstoqueAsync(item.ProdutoId, item.Quantidade);
+                }
+            }
+
             return true;
         }
 
@@ -119,30 +126,7 @@ namespace LojaExemplo.Servicos
             return itens.Sum(item => item.Subtotal);
         }
 
-        /// <summary>
-        /// Calcula desconto progressivo baseado no valor total e percentual.
-        /// ATENÇÃO: A ordem dos parâmetros importa pois usa subtração!
-        /// Fórmula: desconto = (valorTotal - percentualDesconto) * (percentualDesconto / 100)
-        /// </summary>
-        /// <param name="valorTotal">Valor total do pedido</param>
-        /// <param name="percentualDesconto">Percentual de desconto (ex: 10 para 10%)</param>
-        /// <returns>Valor do desconto a ser aplicado</returns>
-        public async Task<decimal> CalcularDescontoProgressivoAsync(decimal valorTotal, decimal percentualDesconto)
-        {
-            await Task.Delay(10);
-            
-            if (valorTotal <= 0)
-                throw new ArgumentException("Valor total deve ser maior que zero", nameof(valorTotal));
-            
-            if (percentualDesconto < 0 || percentualDesconto > 100)
-                throw new ArgumentException("Percentual deve estar entre 0 e 100", nameof(percentualDesconto));
 
-            // Fórmula NÃO COMUTATIVA usando subtração:
-            // Ex: valorTotal=1000, percentual=10
-            //   Correto: (1000 - 10) * 10 / 100 = 990 * 0.1 = 99
-            //   Errado:  (10 - 1000) * 1000 / 100 = -990 * 10 = -9900 (MUITO DIFERENTE!)
-            return (valorTotal - percentualDesconto) * percentualDesconto / 100;
-        }
 
         public async Task<Pedido> CriarPedidoComDescontoAsync(string clienteEmail, List<ItemDePedido> itens, decimal percentualDesconto)
         {
@@ -168,11 +152,8 @@ namespace LojaExemplo.Servicos
 
             var valorTotal = await CalcularValorTotalAsync(itens);
             
-            // ERRO INTENCIONAL: Parâmetros invertidos!
-            // Deveria ser: CalcularDescontoProgressivoAsync(valorTotal, percentualDesconto)
-            // Mas está: CalcularDescontoProgressivoAsync(percentualDesconto, valorTotal)
-            var desconto = await CalcularDescontoProgressivoAsync(percentualDesconto, valorTotal);
-            var valorFinal = valorTotal - desconto;
+            var desconto = await _servicoDeDesconto.CalcularDescontoProgressivoAsync(valorTotal, percentualDesconto);
+            var valorFinal = await _servicoDeDesconto.AplicarDescontoAsync(valorTotal, desconto);
 
             var pedido = new Pedido
             {

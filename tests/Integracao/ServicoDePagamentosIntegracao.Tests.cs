@@ -10,7 +10,8 @@ namespace LojaExemplo.Testes.Integracao
         private (IRepositorioDeProdutos, IServicoDePedidos, IServicoDePagamentos) CriarServicos()
         {
             var repositorio = new RepositorioDeProdutos();
-            var servicoPedidos = new ServicoDePedidos(repositorio);
+            var servicoDeDesconto = new ServicoDeDesconto();
+            var servicoPedidos = new ServicoDePedidos(repositorio, servicoDeDesconto);
             var servicoPagamentos = new ServicoDePagamentos(servicoPedidos);
             return (repositorio, servicoPedidos, servicoPagamentos);
         }

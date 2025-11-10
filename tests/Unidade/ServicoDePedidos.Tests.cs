@@ -9,12 +9,14 @@ namespace LojaExemplo.Unidade
     public class ServicoDePedidosTests
     {
         private readonly Mock<IRepositorioDeProdutos> _mockRepositorioDeProdutos;
+        private readonly Mock<IServicoDeDesconto> _mockServicoDeDesconto;
         private readonly ServicoDePedidos _servicoDePedidos;
 
         public ServicoDePedidosTests()
         {
             _mockRepositorioDeProdutos = new Mock<IRepositorioDeProdutos>();
-            _servicoDePedidos = new ServicoDePedidos(_mockRepositorioDeProdutos.Object);
+            _mockServicoDeDesconto = new Mock<IServicoDeDesconto>();
+            _servicoDePedidos = new ServicoDePedidos(_mockRepositorioDeProdutos.Object, _mockServicoDeDesconto.Object);
         }
 
         [Fact]
@@ -218,58 +220,147 @@ namespace LojaExemplo.Unidade
             Assert.All(pedidos, p => Assert.Equal(clienteEmail, p.ClienteEmail));
         }
 
+
+
         [Fact]
-        public async Task CalcularDescontoProgressivoAsync_ComValoresValidos_DeveCalcularCorretamente()
+        public async Task CancelarPedidoAsync_ComPedidoConfirmado_DeveAdicionarEstoqueDeVolta()
         {
             // Arrange
-            decimal valorTotal = 1000.00m;
-            decimal percentualDesconto = 10m; // 10%
+            var clienteEmail = "cliente@teste.com";
+            var produto = new Produto { Id = 1, Nome = "Notebook", Preco = 2500.00m, EstoqueDisponivel = 10 };
+            var itens = new List<ItemDePedido>
+            {
+                new ItemDePedido { ProdutoId = 1, Quantidade = 3 },
+                new ItemDePedido { ProdutoId = 2, Quantidade = 2 }
+            };
+
+            _mockRepositorioDeProdutos.Setup(r => r.ObterPorIdAsync(It.IsAny<int>()))
+                .ReturnsAsync(produto);
+            _mockRepositorioDeProdutos.Setup(r => r.VerificarEstoqueDisponivel(It.IsAny<int>(), It.IsAny<int>()))
+                .ReturnsAsync(true);
+            _mockRepositorioDeProdutos.Setup(r => r.ReduzirEstoqueAsync(It.IsAny<int>(), It.IsAny<int>()))
+                .ReturnsAsync(true);
+
+            // Criar e confirmar o pedido
+            var pedido = await _servicoDePedidos.CriarPedidoAsync(clienteEmail, itens);
+            await _servicoDePedidos.ConfirmarPedidoAsync(pedido.Id);
 
             // Act
-            var desconto = await _servicoDePedidos.CalcularDescontoProgressivoAsync(valorTotal, percentualDesconto);
+            var resultado = await _servicoDePedidos.CancelarPedidoAsync(pedido.Id);
 
             // Assert
-            // Fórmula: (1000 - 10) * 10 / 100 = 990 * 0.1 = 99
-            Assert.Equal(99.00m, desconto);
+            Assert.True(resultado);
+            Assert.Equal(StatusPedido.Cancelado, pedido.Status);
+            
+            // Verificar se AdicionarEstoqueAsync foi chamado para cada item do pedido
+            _mockRepositorioDeProdutos.Verify(r => r.AdicionarEstoqueAsync(1, 3), Times.Once);
+            _mockRepositorioDeProdutos.Verify(r => r.AdicionarEstoqueAsync(2, 2), Times.Once);
         }
 
         [Fact]
-        public async Task CalcularDescontoProgressivoAsync_ComPercentual20_DeveCalcularCorretamente()
+        public async Task CancelarPedidoAsync_ComPedidoPago_DeveAdicionarEstoqueDeVolta()
         {
             // Arrange
-            decimal valorTotal = 500.00m;
-            decimal percentualDesconto = 20m; // 20%
+            var clienteEmail = "cliente@teste.com";
+            var produto = new Produto { Id = 1, Nome = "Notebook", Preco = 2500.00m, EstoqueDisponivel = 10 };
+            var itens = new List<ItemDePedido>
+            {
+                new ItemDePedido { ProdutoId = 1, Quantidade = 1 }
+            };
+
+            _mockRepositorioDeProdutos.Setup(r => r.ObterPorIdAsync(It.IsAny<int>()))
+                .ReturnsAsync(produto);
+            _mockRepositorioDeProdutos.Setup(r => r.VerificarEstoqueDisponivel(It.IsAny<int>(), It.IsAny<int>()))
+                .ReturnsAsync(true);
+            _mockRepositorioDeProdutos.Setup(r => r.ReduzirEstoqueAsync(It.IsAny<int>(), It.IsAny<int>()))
+                .ReturnsAsync(true);
+
+            // Criar pedido e simular status Pago
+            var pedido = await _servicoDePedidos.CriarPedidoAsync(clienteEmail, itens);
+            pedido.Status = StatusPedido.Pago; // Simular pedido pago
 
             // Act
-            var desconto = await _servicoDePedidos.CalcularDescontoProgressivoAsync(valorTotal, percentualDesconto);
+            var resultado = await _servicoDePedidos.CancelarPedidoAsync(pedido.Id);
 
             // Assert
-            // Fórmula: (500 - 20) * 20 / 100 = 480 * 0.2 = 96
-            Assert.Equal(96.00m, desconto);
+            Assert.True(resultado);
+            Assert.Equal(StatusPedido.Cancelado, pedido.Status);
+            
+            // Verificar se AdicionarEstoqueAsync foi chamado
+            _mockRepositorioDeProdutos.Verify(r => r.AdicionarEstoqueAsync(1, 1), Times.Once);
         }
 
         [Fact]
-        public async Task CalcularDescontoProgressivoAsync_ComValorZero_DeveRetornarExcecao()
+        public async Task CancelarPedidoAsync_ComPedidoPendente_NaoDeveAdicionarEstoque()
         {
             // Arrange
-            decimal valorTotal = 0m;
-            decimal percentualDesconto = 10m;
+            var clienteEmail = "cliente@teste.com";
+            var produto = new Produto { Id = 1, Nome = "Notebook", Preco = 2500.00m, EstoqueDisponivel = 10 };
+            var itens = new List<ItemDePedido>
+            {
+                new ItemDePedido { ProdutoId = 1, Quantidade = 2 }
+            };
 
-            // Act & Assert
-            await Assert.ThrowsAsync<ArgumentException>(() =>
-                _servicoDePedidos.CalcularDescontoProgressivoAsync(valorTotal, percentualDesconto));
+            _mockRepositorioDeProdutos.Setup(r => r.ObterPorIdAsync(It.IsAny<int>()))
+                .ReturnsAsync(produto);
+            _mockRepositorioDeProdutos.Setup(r => r.VerificarEstoqueDisponivel(It.IsAny<int>(), It.IsAny<int>()))
+                .ReturnsAsync(true);
+
+            // Criar pedido (fica com status Pendente)
+            var pedido = await _servicoDePedidos.CriarPedidoAsync(clienteEmail, itens);
+
+            // Act
+            var resultado = await _servicoDePedidos.CancelarPedidoAsync(pedido.Id);
+
+            // Assert
+            Assert.True(resultado);
+            Assert.Equal(StatusPedido.Cancelado, pedido.Status);
+            
+            // Verificar que AdicionarEstoqueAsync NÃO foi chamado para pedidos pendentes
+            _mockRepositorioDeProdutos.Verify(r => r.AdicionarEstoqueAsync(It.IsAny<int>(), It.IsAny<int>()), Times.Never);
         }
 
         [Fact]
-        public async Task CalcularDescontoProgressivoAsync_ComPercentualInvalido_DeveRetornarExcecao()
+        public async Task CriarPedidoComDescontoAsync_DeveUsarServicoDeDesconto()
         {
             // Arrange
-            decimal valorTotal = 1000.00m;
-            decimal percentualDesconto = 150m; // > 100%
+            var clienteEmail = "teste@exemplo.com";
+            var percentualDesconto = 10m;
+            var valorTotal = 200m;
+            var descontoCalculado = 19m; // (200-10) * 10/100 = 19
+            var valorFinal = 181m;
 
-            // Act & Assert
-            await Assert.ThrowsAsync<ArgumentException>(() =>
-                _servicoDePedidos.CalcularDescontoProgressivoAsync(valorTotal, percentualDesconto));
+            var produto1 = new Produto { Id = 1, Nome = "Produto 1", Preco = 100m };
+            var produto2 = new Produto { Id = 2, Nome = "Produto 2", Preco = 100m };
+
+            var itens = new List<ItemDePedido>
+            {
+                new ItemDePedido { ProdutoId = 1, Quantidade = 1 },
+                new ItemDePedido { ProdutoId = 2, Quantidade = 1 }
+            };
+
+            _mockRepositorioDeProdutos.Setup(r => r.ObterPorIdAsync(1)).ReturnsAsync(produto1);
+            _mockRepositorioDeProdutos.Setup(r => r.ObterPorIdAsync(2)).ReturnsAsync(produto2);
+            _mockRepositorioDeProdutos.Setup(r => r.VerificarEstoqueDisponivel(It.IsAny<int>(), It.IsAny<int>()))
+                .ReturnsAsync(true);
+
+            _mockServicoDeDesconto.Setup(s => s.CalcularDescontoProgressivoAsync(valorTotal, percentualDesconto))
+                .ReturnsAsync(descontoCalculado);
+            _mockServicoDeDesconto.Setup(s => s.AplicarDescontoAsync(valorTotal, descontoCalculado))
+                .ReturnsAsync(valorFinal);
+
+            // Act
+            var pedido = await _servicoDePedidos.CriarPedidoComDescontoAsync(clienteEmail, itens, percentualDesconto);
+
+            // Assert
+            Assert.NotNull(pedido);
+            Assert.Equal(valorFinal, pedido.ValorTotal);
+            Assert.Equal(StatusPedido.Pendente, pedido.Status);
+            Assert.Equal(clienteEmail, pedido.ClienteEmail);
+
+            // Verify que os métodos do serviço de desconto foram chamados
+            _mockServicoDeDesconto.Verify(s => s.CalcularDescontoProgressivoAsync(valorTotal, percentualDesconto), Times.Once);
+            _mockServicoDeDesconto.Verify(s => s.AplicarDescontoAsync(valorTotal, descontoCalculado), Times.Once);
         }
     }
 }
