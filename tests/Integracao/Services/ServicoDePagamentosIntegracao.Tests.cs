@@ -182,7 +182,6 @@ namespace LojaExemplo.Testes.Integracao
 
             var pedido = await servicoDePedidos.CriarPedidoAsync(clienteEmail, itens);
             await servicoDePedidos.ConfirmarPedidoAsync(pedido.Id);
-            // NÃO processa pagamento
 
             // Act
             var estornado = await servicoDePagamentos.EstornarPagamentoAsync(pedido.Id);
