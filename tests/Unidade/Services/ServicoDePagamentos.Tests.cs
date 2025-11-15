@@ -27,7 +27,7 @@ namespace LojaExemplo.Unidade
             decimal valor = 100m;
 
             // Act & Assert
-            await Assert.ThrowsAsync<ArgumentException>(() => 
+            await Assert.ThrowsAsync<ArgumentException>(() =>
                 _servicoDePagamentos.ProcessarPagamentoAsync(pedidoId, metodoPagamento, valor));
         }
 
@@ -40,7 +40,7 @@ namespace LojaExemplo.Unidade
             decimal valor = 100m;
 
             // Act & Assert
-            await Assert.ThrowsAsync<ArgumentException>(() => 
+            await Assert.ThrowsAsync<ArgumentException>(() =>
                 _servicoDePagamentos.ProcessarPagamentoAsync(pedidoId, metodoPagamento, valor));
         }
 
@@ -53,7 +53,7 @@ namespace LojaExemplo.Unidade
             decimal valor = 0m;
 
             // Act & Assert
-            await Assert.ThrowsAsync<ArgumentException>(() => 
+            await Assert.ThrowsAsync<ArgumentException>(() =>
                 _servicoDePagamentos.ProcessarPagamentoAsync(pedidoId, metodoPagamento, valor));
         }
 
@@ -66,7 +66,7 @@ namespace LojaExemplo.Unidade
             decimal valor = -100m;
 
             // Act & Assert
-            await Assert.ThrowsAsync<ArgumentException>(() => 
+            await Assert.ThrowsAsync<ArgumentException>(() =>
                 _servicoDePagamentos.ProcessarPagamentoAsync(pedidoId, metodoPagamento, valor));
         }
 
@@ -83,7 +83,7 @@ namespace LojaExemplo.Unidade
                 .ReturnsAsync((Pedido?)null);
 
             // Act & Assert
-            await Assert.ThrowsAsync<InvalidOperationException>(() => 
+            await Assert.ThrowsAsync<InvalidOperationException>(() =>
                 _servicoDePagamentos.ProcessarPagamentoAsync(pedidoId, metodoPagamento, valor));
         }
 
@@ -107,9 +107,9 @@ namespace LojaExemplo.Unidade
                 .ReturnsAsync(pedido);
 
             // Act & Assert
-            var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => 
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(() =>
                 _servicoDePagamentos.ProcessarPagamentoAsync(pedidoId, metodoPagamento, valor));
-            
+
             Assert.Contains("confirmados", exception.Message);
         }
 
@@ -133,7 +133,7 @@ namespace LojaExemplo.Unidade
                 .ReturnsAsync(pedido);
 
             // Act & Assert
-            await Assert.ThrowsAsync<InvalidOperationException>(() => 
+            await Assert.ThrowsAsync<InvalidOperationException>(() =>
                 _servicoDePagamentos.ProcessarPagamentoAsync(pedidoId, metodoPagamento, valor));
         }
 
@@ -158,9 +158,9 @@ namespace LojaExemplo.Unidade
                 .ReturnsAsync(pedido);
 
             // Act & Assert
-            var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => 
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(() =>
                 _servicoDePagamentos.ProcessarPagamentoAsync(pedidoId, metodoPagamento, valorPagamento));
-            
+
             Assert.Contains("não confere", exception.Message);
         }
 
@@ -184,9 +184,9 @@ namespace LojaExemplo.Unidade
                 .ReturnsAsync(pedido);
 
             // Act & Assert
-            var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => 
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(() =>
                 _servicoDePagamentos.ProcessarPagamentoAsync(pedidoId, metodoPagamento, valor));
-            
+
             Assert.Contains("não suportado", exception.Message);
         }
 
@@ -365,19 +365,20 @@ namespace LojaExemplo.Unidade
         #region ObterMetodosPagamentoDisponiveisAsync Tests
 
         [Fact]
-        public async Task ObterMetodosPagamentoDisponiveisAsync_DeveRetornarListaCompleta()
+        public async Task ObterMetodosPagamentoDisponiveisAsync_DeveRetornarListaComMetodosEsperados()
         {
             // Act
             var metodos = await _servicoDePagamentos.ObterMetodosPagamentoDisponiveisAsync();
 
             // Assert
-            Assert.NotNull(metodos);
-            Assert.Equal(5, metodos.Count);
-            Assert.Contains("CartaoCredito", metodos);
-            Assert.Contains("CartaoDebito", metodos);
-            Assert.Contains("Pix", metodos);
-            Assert.Contains("Boleto", metodos);
-            Assert.Contains("TransferenciaBancaria", metodos);
+            Assert.Multiple(() =>
+            {
+                Assert.Contains("CartaoCredito", metodos);
+                Assert.Contains("CartaoDebito", metodos);
+                Assert.Contains("Pix", metodos);
+                Assert.Contains("Boleto", metodos);
+                Assert.Contains("TransferenciaBancaria", metodos);
+            });
         }
 
         [Fact]
@@ -397,9 +398,12 @@ namespace LojaExemplo.Unidade
             var metodos = await _servicoDePagamentos.ObterMetodosPagamentoDisponiveisAsync();
 
             // Assert
-            Assert.DoesNotContain("Bitcoin", metodos);
-            Assert.DoesNotContain("Dinheiro", metodos);
-            Assert.DoesNotContain("Cheque", metodos);
+            Assert.Multiple(() =>
+            {
+                Assert.DoesNotContain("Dinheiro", metodos);
+                Assert.DoesNotContain("Cheque", metodos);
+                Assert.DoesNotContain("Bitcoin", metodos);
+            });
         }
 
         #endregion

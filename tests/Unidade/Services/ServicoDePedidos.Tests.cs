@@ -1,4 +1,3 @@
-using Xunit;
 using Moq;
 using LojaExemplo.Servicos;
 using LojaExemplo.Repositorios;
