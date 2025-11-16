@@ -1,16 +1,17 @@
 using LojaExemplo.Modelos;
+using LojaExemplo.Repositorios;
 
 namespace LojaExemplo.Servicos
 {
     public class ServicoDePagamentos : IServicoDePagamentos
     {
         private readonly IServicoDePedidos _servicoDePedidos;
-        private readonly Dictionary<int, PagamentoInfo> _pagamentos;
+        private readonly IRepositorioDePagamentos _repositorioDePagamentos;
 
-        public ServicoDePagamentos(IServicoDePedidos servicoDePedidos)
+        public ServicoDePagamentos(IServicoDePedidos servicoDePedidos, IRepositorioDePagamentos repositorioDePagamentos)
         {
             _servicoDePedidos = servicoDePedidos;
-            _pagamentos = new Dictionary<int, PagamentoInfo>();
+            _repositorioDePagamentos = repositorioDePagamentos;
         }
 
         public async Task<bool> ProcessarPagamentoAsync(int pedidoId, string metodoPagamento, decimal valor)
@@ -38,11 +39,6 @@ namespace LojaExemplo.Servicos
             // Simular processamento do pagamento
             await Task.Delay(100);
 
-            // Simular falha em 10% dos casos para testes
-            var random = new Random();
-            if (random.Next(1, 11) == 1)
-                return false;
-
             var pagamentoInfo = new PagamentoInfo
             {
                 PedidoId = pedidoId,
@@ -52,7 +48,7 @@ namespace LojaExemplo.Servicos
                 Status = StatusPagamento.Aprovado
             };
 
-            _pagamentos[pedidoId] = pagamentoInfo;
+            await _repositorioDePagamentos.AdicionarAsync(pagamentoInfo);
 
             // Atualizar status do pedido
             pedido.Status = StatusPedido.Pago;
@@ -64,24 +60,25 @@ namespace LojaExemplo.Servicos
 
         public async Task<bool> VerificarStatusPagamentoAsync(int pedidoId)
         {
-            await Task.Delay(10);
-            return _pagamentos.ContainsKey(pedidoId) && 
-                   _pagamentos[pedidoId].Status == StatusPagamento.Aprovado;
+            var pagamento = await _repositorioDePagamentos.ObterPorPedidoIdAsync(pedidoId);
+            return pagamento != null && pagamento.Status == StatusPagamento.Aprovado;
         }
 
         public async Task<bool> EstornarPagamentoAsync(int pedidoId)
         {
             await Task.Delay(50);
             
-            if (!_pagamentos.ContainsKey(pedidoId))
+            var pagamento = await _repositorioDePagamentos.ObterPorPedidoIdAsync(pedidoId);
+            if (pagamento == null)
                 return false;
 
-            var pagamento = _pagamentos[pedidoId];
             if (pagamento.Status != StatusPagamento.Aprovado)
                 return false;
 
             pagamento.Status = StatusPagamento.Estornado;
             pagamento.DataEstorno = DateTime.Now;
+
+            await _repositorioDePagamentos.AtualizarAsync(pagamento);
 
             var pedido = await _servicoDePedidos.ObterPedidoPorIdAsync(pedidoId);
             if (pedido != null)
@@ -104,23 +101,5 @@ namespace LojaExemplo.Servicos
                 "TransferenciaBancaria"
             };
         }
-    }
-
-    public class PagamentoInfo
-    {
-        public int PedidoId { get; set; }
-        public string MetodoPagamento { get; set; } = string.Empty;
-        public decimal Valor { get; set; }
-        public DateTime DataPagamento { get; set; }
-        public DateTime? DataEstorno { get; set; }
-        public StatusPagamento Status { get; set; }
-    }
-
-    public enum StatusPagamento
-    {
-        Pendente = 1,
-        Aprovado = 2,
-        Rejeitado = 3,
-        Estornado = 4
     }
 }

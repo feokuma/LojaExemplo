@@ -2,18 +2,21 @@ using Xunit;
 using Moq;
 using LojaExemplo.Servicos;
 using LojaExemplo.Modelos;
+using LojaExemplo.Repositorios;
 
 namespace LojaExemplo.Unidade
 {
     public class ServicoDePagamentosTests
     {
         private readonly Mock<IServicoDePedidos> _mockServicoDePedidos;
+        private readonly Mock<IRepositorioDePagamentos> _mockRepositorioDePagamentos;
         private readonly ServicoDePagamentos _servicoDePagamentos;
 
         public ServicoDePagamentosTests()
         {
             _mockServicoDePedidos = new Mock<IServicoDePedidos>();
-            _servicoDePagamentos = new ServicoDePagamentos(_mockServicoDePedidos.Object);
+            _mockRepositorioDePagamentos = new Mock<IRepositorioDePagamentos>();
+            _servicoDePagamentos = new ServicoDePagamentos(_mockServicoDePedidos.Object, _mockRepositorioDePagamentos.Object);
         }
 
         #region ProcessarPagamentoAsync Tests
@@ -238,6 +241,10 @@ namespace LojaExemplo.Unidade
             // Arrange
             int pedidoId = 999;
 
+            _mockRepositorioDePagamentos
+                .Setup(r => r.ObterPorPedidoIdAsync(pedidoId))
+                .ReturnsAsync((PagamentoInfo?)null);
+
             // Act
             var resultado = await _servicoDePagamentos.VerificarStatusPagamentoAsync(pedidoId);
 
@@ -252,26 +259,24 @@ namespace LojaExemplo.Unidade
             int pedidoId = 1;
             decimal valor = 100m;
 
-            var pedido = new Pedido
+            var pagamentoInfo = new PagamentoInfo
             {
-                Id = pedidoId,
-                Status = StatusPedido.Confirmado,
-                ValorTotal = valor
+                PedidoId = pedidoId,
+                MetodoPagamento = "CartaoCredito",
+                Valor = valor,
+                Status = StatusPagamento.Aprovado,
+                DataPagamento = DateTime.Now
             };
 
-            _mockServicoDePedidos
-                .Setup(s => s.ObterPedidoPorIdAsync(pedidoId))
-                .ReturnsAsync(pedido);
-
-            // Processar pagamento primeiro
-            await _servicoDePagamentos.ProcessarPagamentoAsync(pedidoId, "CartaoCredito", valor);
+            _mockRepositorioDePagamentos
+                .Setup(r => r.ObterPorPedidoIdAsync(pedidoId))
+                .ReturnsAsync(pagamentoInfo);
 
             // Act
             var resultado = await _servicoDePagamentos.VerificarStatusPagamentoAsync(pedidoId);
 
             // Assert
-            // Pode ser true se o pagamento foi aprovado (90% de chance)
-            Assert.True(resultado || !resultado); // Aceita ambos devido à aleatoriedade
+            Assert.True(resultado);
         }
 
         #endregion
@@ -283,6 +288,10 @@ namespace LojaExemplo.Unidade
         {
             // Arrange
             int pedidoId = 999;
+
+            _mockRepositorioDePagamentos
+                .Setup(r => r.ObterPorPedidoIdAsync(pedidoId))
+                .ReturnsAsync((PagamentoInfo?)null);
 
             // Act
             var resultado = await _servicoDePagamentos.EstornarPagamentoAsync(pedidoId);
@@ -301,30 +310,38 @@ namespace LojaExemplo.Unidade
             var pedido = new Pedido
             {
                 Id = pedidoId,
-                Status = StatusPedido.Confirmado,
+                Status = StatusPedido.Pago,
                 ValorTotal = valor
+            };
+
+            var pagamentoInfo = new PagamentoInfo
+            {
+                PedidoId = pedidoId,
+                MetodoPagamento = "CartaoCredito",
+                Valor = valor,
+                Status = StatusPagamento.Aprovado,
+                DataPagamento = DateTime.Now
             };
 
             _mockServicoDePedidos
                 .Setup(s => s.ObterPedidoPorIdAsync(pedidoId))
                 .ReturnsAsync(pedido);
 
-            // Processar pagamento primeiro
-            var pagamentoProcessado = await _servicoDePagamentos.ProcessarPagamentoAsync(pedidoId, "CartaoCredito", valor);
+            _mockRepositorioDePagamentos
+                .Setup(r => r.ObterPorPedidoIdAsync(pedidoId))
+                .ReturnsAsync(pagamentoInfo);
+
+            _mockRepositorioDePagamentos
+                .Setup(r => r.AtualizarAsync(It.IsAny<PagamentoInfo>()))
+                .ReturnsAsync(pagamentoInfo);
 
             // Act
-            bool resultado = false;
-            if (pagamentoProcessado)
-            {
-                resultado = await _servicoDePagamentos.EstornarPagamentoAsync(pedidoId);
-            }
+            var resultado = await _servicoDePagamentos.EstornarPagamentoAsync(pedidoId);
 
             // Assert
-            if (pagamentoProcessado)
-            {
-                Assert.True(resultado);
-                Assert.Equal(StatusPedido.Cancelado, pedido.Status);
-            }
+            Assert.True(resultado);
+            Assert.Equal(StatusPedido.Cancelado, pedido.Status);
+            _mockRepositorioDePagamentos.Verify(r => r.AtualizarAsync(It.IsAny<PagamentoInfo>()), Times.Once);
         }
 
         [Fact]
@@ -337,27 +354,50 @@ namespace LojaExemplo.Unidade
             var pedido = new Pedido
             {
                 Id = pedidoId,
-                Status = StatusPedido.Confirmado,
+                Status = StatusPedido.Pago,
                 ValorTotal = valor
+            };
+
+            var pagamentoInfo = new PagamentoInfo
+            {
+                PedidoId = pedidoId,
+                MetodoPagamento = "CartaoCredito",
+                Valor = valor,
+                Status = StatusPagamento.Aprovado,
+                DataPagamento = DateTime.Now
+            };
+
+            var pagamentoEstornado = new PagamentoInfo
+            {
+                PedidoId = pedidoId,
+                MetodoPagamento = "CartaoCredito",
+                Valor = valor,
+                Status = StatusPagamento.Estornado,
+                DataPagamento = DateTime.Now,
+                DataEstorno = DateTime.Now
             };
 
             _mockServicoDePedidos
                 .Setup(s => s.ObterPedidoPorIdAsync(pedidoId))
                 .ReturnsAsync(pedido);
 
-            // Processar pagamento primeiro
-            var pagamentoProcessado = await _servicoDePagamentos.ProcessarPagamentoAsync(pedidoId, "CartaoCredito", valor);
+            // Primeira chamada retorna pagamento aprovado, segunda retorna estornado
+            _mockRepositorioDePagamentos
+                .SetupSequence(r => r.ObterPorPedidoIdAsync(pedidoId))
+                .ReturnsAsync(pagamentoInfo)
+                .ReturnsAsync(pagamentoEstornado);
+
+            _mockRepositorioDePagamentos
+                .Setup(r => r.AtualizarAsync(It.IsAny<PagamentoInfo>()))
+                .ReturnsAsync(pagamentoEstornado);
 
             // Act
-            if (pagamentoProcessado)
-            {
-                var primeiroEstorno = await _servicoDePagamentos.EstornarPagamentoAsync(pedidoId);
-                var segundoEstorno = await _servicoDePagamentos.EstornarPagamentoAsync(pedidoId);
+            var primeiroEstorno = await _servicoDePagamentos.EstornarPagamentoAsync(pedidoId);
+            var segundoEstorno = await _servicoDePagamentos.EstornarPagamentoAsync(pedidoId);
 
-                // Assert
-                Assert.True(primeiroEstorno);
-                Assert.False(segundoEstorno);
-            }
+            // Assert
+            Assert.True(primeiroEstorno);
+            Assert.False(segundoEstorno);
         }
 
         #endregion

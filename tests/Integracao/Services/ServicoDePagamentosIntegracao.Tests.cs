@@ -10,9 +10,10 @@ namespace LojaExemplo.Testes.Integracao
         private (IRepositorioDeProdutos, IServicoDePedidos, IServicoDePagamentos) CriarServicos()
         {
             var repositorio = new RepositorioDeProdutos();
+            var repositorioDePagamentos = new RepositorioDePagamentos();
             var servicoDeDesconto = new ServicoDeDesconto();
             var servicoPedidos = new ServicoDePedidos(repositorio, servicoDeDesconto);
-            var servicoPagamentos = new ServicoDePagamentos(servicoPedidos);
+            var servicoPagamentos = new ServicoDePagamentos(servicoPedidos, repositorioDePagamentos);
             return (repositorio, servicoPedidos, servicoPagamentos);
         }
 
@@ -30,12 +31,18 @@ namespace LojaExemplo.Testes.Integracao
             var pedido = await servicoDePedidos.CriarPedidoAsync(clienteEmail, itens);
             await servicoDePedidos.ConfirmarPedidoAsync(pedido.Id);
 
-            // Act
-            var pagamentoProcessado = await servicoDePagamentos.ProcessarPagamentoAsync(
-                pedido.Id, "CartaoCredito", pedido.ValorTotal);
+            // Act - Tentar processar pagamento até ter sucesso (devido à falha aleatória de 10%)
+            bool pagamentoProcessado = false;
+            int tentativas = 0;
+            while (!pagamentoProcessado && tentativas < 20)
+            {
+                pagamentoProcessado = await servicoDePagamentos.ProcessarPagamentoAsync(
+                    pedido.Id, "CartaoCredito", pedido.ValorTotal);
+                tentativas++;
+            }
 
             // Assert
-            Assert.True(pagamentoProcessado);
+            Assert.True(pagamentoProcessado, "Pagamento deveria ter sido processado após múltiplas tentativas");
             Assert.Equal(StatusPedido.Pago, pedido.Status);
             Assert.NotNull(pedido.DataPagamento);
             Assert.Equal("CartaoCredito", pedido.MetodoPagamento);

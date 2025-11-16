@@ -8,6 +8,7 @@ builder.Services.AddControllers();
 
 // Register application services
 builder.Services.AddScoped<IRepositorioDeProdutos, RepositorioDeProdutos>();
+builder.Services.AddScoped<IRepositorioDePagamentos, RepositorioDePagamentos>();
 builder.Services.AddScoped<IServicoDePedidos, ServicoDePedidos>();
 builder.Services.AddScoped<IServicoDePagamentos, ServicoDePagamentos>();
 
