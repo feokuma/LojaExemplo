@@ -7,8 +7,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 
 // Register application services
-builder.Services.AddScoped<IRepositorioDeProdutos, RepositorioDeProdutos>();
-builder.Services.AddScoped<IRepositorioDePagamentos, RepositorioDePagamentos>();
+builder.Services.AddSingleton<IRepositorioDeProdutos, RepositorioDeProdutos>();
+builder.Services.AddSingleton<IRepositorioDePagamentos, RepositorioDePagamentos>();
+builder.Services.AddSingleton<IRepositorioDePedidos, RepositorioDePedidos>();
+builder.Services.AddScoped<IServicoDeDesconto, ServicoDeDesconto>();
 builder.Services.AddScoped<IServicoDePedidos, ServicoDePedidos>();
 builder.Services.AddScoped<IServicoDePagamentos, ServicoDePagamentos>();
 
