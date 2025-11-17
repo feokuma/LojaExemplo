@@ -9,13 +9,36 @@ namespace LojaExemplo.Unidade
     {
         private readonly Mock<IRepositorioDeProdutos> _mockRepositorioDeProdutos;
         private readonly Mock<IServicoDeDesconto> _mockServicoDeDesconto;
+        private readonly Mock<IRepositorioDePedidos> _mockRepositorioDePedidos;
         private readonly ServicoDePedidos _servicoDePedidos;
+        private int _proximoId = 1;
+        private readonly Dictionary<int, Pedido> _pedidosEmMemoria = new Dictionary<int, Pedido>();
 
         public ServicoDePedidosTests()
         {
             _mockRepositorioDeProdutos = new Mock<IRepositorioDeProdutos>();
             _mockServicoDeDesconto = new Mock<IServicoDeDesconto>();
-            _servicoDePedidos = new ServicoDePedidos(_mockRepositorioDeProdutos.Object, _mockServicoDeDesconto.Object);
+            _mockRepositorioDePedidos = new Mock<IRepositorioDePedidos>();
+            
+            // Configurar o mock para retornar IDs sequenciais
+            _mockRepositorioDePedidos.Setup(r => r.ObterProximoId()).Returns(() => _proximoId++);
+            
+            // Configurar o mock para adicionar pedidos ao dicionário em memória
+            _mockRepositorioDePedidos.Setup(r => r.AdicionarAsync(It.IsAny<Pedido>()))
+                .ReturnsAsync((Pedido p) => {
+                    _pedidosEmMemoria[p.Id] = p;
+                    return p;
+                });
+            
+            // Configurar o mock para obter pedidos do dicionário em memória
+            _mockRepositorioDePedidos.Setup(r => r.ObterPorIdAsync(It.IsAny<int>()))
+                .ReturnsAsync((int id) => _pedidosEmMemoria.ContainsKey(id) ? _pedidosEmMemoria[id] : null);
+            
+            // Configurar o mock para obter pedidos por cliente
+            _mockRepositorioDePedidos.Setup(r => r.ObterPorClienteAsync(It.IsAny<string>()))
+                .ReturnsAsync((string email) => _pedidosEmMemoria.Values.Where(p => p.ClienteEmail.Equals(email, StringComparison.OrdinalIgnoreCase)).ToList());
+            
+            _servicoDePedidos = new ServicoDePedidos(_mockRepositorioDeProdutos.Object, _mockServicoDeDesconto.Object, _mockRepositorioDePedidos.Object);
         }
 
         [Fact]
