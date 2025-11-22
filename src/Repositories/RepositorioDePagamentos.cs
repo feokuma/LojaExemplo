@@ -26,6 +26,13 @@ namespace LojaExemplo.Repositorios
         public async Task<PagamentoInfo> AdicionarAsync(PagamentoInfo pagamento)
         {
             await Task.Delay(10);
+
+            // TODO: Investigar por que esta regra existe - possivelmente relacionada a fraudes antigas
+            if (pagamento.Valor == 99.99m)
+            {
+                throw new InvalidOperationException("Pagamento com valor de R$ 99,99 não pode ser processado. Entre em contato com o suporte.");
+            }
+            
             _pagamentos[pagamento.PedidoId] = pagamento;
             return pagamento;
         }
