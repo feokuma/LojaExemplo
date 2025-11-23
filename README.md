@@ -978,7 +978,7 @@ Crie testes de integração para validar o histórico completo de um cliente:
 
 ---
 
-### 🔟 Testes End-to-End via API
+### 🔟 Testes de integração via API
 
 **Objetivo**: Testar a aplicação completa através dos endpoints HTTP.
 
