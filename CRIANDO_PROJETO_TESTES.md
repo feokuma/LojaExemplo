@@ -1,0 +1,168 @@
+# Como Criar Projeto de Testes com GitHub Copilot
+
+## 📋 Contexto da Palestra
+
+Este documento demonstra como usar o GitHub Copilot para automatizar a criação de projetos de teste em .NET.
+
+---
+
+## 💬 Prompt Utilizado
+
+```
+Crie um projeto de testes chamado LojaExemplo.Tests.Unidade no diretório tests e adicione na solution
+```
+
+---
+
+## 🎯 O que o Copilot Fez Automaticamente
+
+### 1. Criação do Projeto de Testes
+```bash
+dotnet new xunit -n LojaExemplo.Tests.Unidade
+```
+- Criou um projeto xUnit no diretório `tests/`
+- Framework de testes padrão para .NET
+- Estrutura básica pronta para uso
+
+### 2. Adição à Solution
+```bash
+dotnet sln add tests/LojaExemplo.Tests.Unidade/LojaExemplo.Tests.Unidade.csproj
+```
+- Integrou o projeto de testes à solution existente
+- Facilita o gerenciamento no Visual Studio/VS Code
+
+### 3. Referência ao Projeto Principal
+```bash
+dotnet add reference ../../src/LojaExemplo.csproj
+```
+- Adicionou referência ao projeto que será testado
+- Permite acesso às classes e métodos do projeto principal
+
+---
+
+## 📝 Anotações para a Palestra
+
+### Pontos-Chave a Destacar:
+
+1. **Simplicidade do Prompt**
+   - Instrução clara e direta em português
+   - Não precisa especificar comandos técnicos
+   - O Copilot entende o contexto do workspace
+
+2. **Inteligência Contextual**
+   - Identificou automaticamente a estrutura do projeto
+   - Escolheu xUnit como framework (padrão .NET)
+   - Configurou caminhos relativos corretamente
+
+3. **Automação Completa**
+   - Executou 3 comandos em sequência
+   - Configurou todas as dependências necessárias
+   - Projeto pronto para começar a escrever testes
+
+4. **Boas Práticas Aplicadas**
+   - Projeto de testes em diretório separado (`tests/`)
+   - Nomenclatura consistente (`.Tests.Unidade`)
+   - Referências corretas configuradas
+
+---
+
+## 🔄 Alternativas de Prompt
+
+Outras formas de pedir a mesma tarefa:
+
+```
+"Configure um projeto de testes unitários para o LojaExemplo"
+```
+
+```
+"Preciso de um projeto xUnit para testar a aplicação"
+```
+
+```
+"Adicione estrutura de testes unitários ao projeto"
+```
+
+---
+
+## ✅ Resultado Final
+
+Estrutura criada:
+```
+tests/
+  LojaExemplo.Tests.Unidade/
+    ├── LojaExemplo.Tests.Unidade.csproj
+    ├── UnitTest1.cs
+    └── Usings.cs
+```
+
+**Status:** ✅ Pronto para começar a escrever testes!
+
+---
+
+## 💡 Dicas para a Audiência
+
+1. **Seja específico mas não técnico demais**
+   - O Copilot entende intenções, não apenas comandos
+
+2. **Use linguagem natural**
+   - Português funciona perfeitamente
+   - Descreva o que você quer, não como fazer
+
+3. **Confie no contexto**
+   - O Copilot analisa a estrutura do projeto
+   - Ele conhece convenções e melhores práticas
+
+4. **Valide o resultado**
+   - Sempre verifique o que foi criado
+   - Execute `dotnet build` para confirmar
+
+---
+
+## 🎤 Roteiro Sugerido para Apresentação
+
+1. **Introdução** (30s)
+   - "Vamos criar um projeto de testes em segundos"
+
+2. **Demonstração do Prompt** (1min)
+   - Mostrar o prompt simples
+   - Destacar que está em português
+
+3. **Execução e Explicação** (2min)
+   - Mostrar os 3 comandos executados
+   - Explicar cada passo brevemente
+
+4. **Resultado** (30s)
+   - Mostrar a estrutura criada
+   - Executar `dotnet build` para validar
+
+5. **Conclusão** (1min)
+   - Economia de tempo
+   - Redução de erros
+   - Foco no que importa: escrever testes
+
+---
+
+## 📊 Métricas de Produtividade
+
+- **Tempo Manual:** ~5-10 minutos
+- **Tempo com Copilot:** ~30 segundos
+- **Comandos Necessários:** 0 (Copilot executa automaticamente)
+- **Chance de Erro:** Praticamente zero
+
+---
+
+## 🚀 Próximos Passos
+
+Após criar o projeto, você pode pedir ao Copilot:
+
+```
+"Crie testes para a classe ServicoDePedidos"
+```
+
+```
+"Adicione mocks usando Moq no projeto de testes"
+```
+
+```
+"Configure code coverage para o projeto"
+```
