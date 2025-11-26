@@ -1,6 +1,6 @@
 # Como Criar Projeto de Testes com GitHub Copilot
 
-## 📋 Contexto da Palestra
+## 📋 Contexto
 
 Este documento demonstra como usar o GitHub Copilot para automatizar a criação de projetos de teste em .NET.
 
@@ -8,8 +8,13 @@ Este documento demonstra como usar o GitHub Copilot para automatizar a criação
 
 ## 💬 Prompt Utilizado
 
-```
-Crie um projeto de testes chamado LojaExemplo.Tests.Unidade no diretório tests e adicione na solution
+```plaintext
+Crie um projeto de testes seguindo as seguintes instruções:
+- O projeto deve ser criado dentro de um diretório chamado "LojaExemplo.Tests.Unidade" na pasta "tests"
+- O projeto deve se chamar LojaExemplo.Tests.Unidade
+- Utilizar NUnit como ferramenta de testes
+- Adicione a referência do projeto LojaExemplo.csproj neste projeto de test
+- Adicione o projeto de testes na solution
 ```
 
 ---
@@ -18,25 +23,25 @@ Crie um projeto de testes chamado LojaExemplo.Tests.Unidade no diretório tests 
 
 ### 1. Criação do Projeto de Testes
 ```bash
-dotnet new xunit -n LojaExemplo.Tests.Unidade
+dotnet new nunit -o ./tests/LojaExemplo.Tests.Unidade -n LojaExemplo.Tests.Unidade
 ```
-- Criou um projeto xUnit no diretório `tests/`
-- Framework de testes padrão para .NET
+- Criou um projeto NUnit no diretório `tests/LojaExemplo.Tests.Unidade`
+- Framework de testes utilizado: NUnit
 - Estrutura básica pronta para uso
 
-### 2. Adição à Solution
+### 2. Referência ao Projeto Principal
 ```bash
-dotnet sln add tests/LojaExemplo.Tests.Unidade/LojaExemplo.Tests.Unidade.csproj
+dotnet add ./tests/LojaExemplo.Tests.Unidade/LojaExemplo.Tests.Unidade.csproj reference ./src/LojaExemplo.csproj
+```
+- Adicionou referência ao projeto principal (`src/LojaExemplo.csproj`)
+- Permite acesso às classes e métodos do projeto principal
+
+### 3. Adição à Solution
+```bash
+dotnet sln LojaExemplo.sln add ./tests/LojaExemplo.Tests.Unidade/LojaExemplo.Tests.Unidade.csproj
 ```
 - Integrou o projeto de testes à solution existente
 - Facilita o gerenciamento no Visual Studio/VS Code
-
-### 3. Referência ao Projeto Principal
-```bash
-dotnet add reference ../../src/LojaExemplo.csproj
-```
-- Adicionou referência ao projeto que será testado
-- Permite acesso às classes e métodos do projeto principal
 
 ---
 
@@ -51,7 +56,7 @@ dotnet add reference ../../src/LojaExemplo.csproj
 
 2. **Inteligência Contextual**
    - Identificou automaticamente a estrutura do projeto
-   - Escolheu xUnit como framework (padrão .NET)
+   - Escolheu NUnit como framework (conforme instrução)
    - Configurou caminhos relativos corretamente
 
 3. **Automação Completa**
@@ -86,13 +91,14 @@ Outras formas de pedir a mesma tarefa:
 
 ## ✅ Resultado Final
 
+
 Estrutura criada:
 ```
 tests/
-  LojaExemplo.Tests.Unidade/
-    ├── LojaExemplo.Tests.Unidade.csproj
-    ├── UnitTest1.cs
-    └── Usings.cs
+   LojaExemplo.Tests.Unidade/
+      ├── LojaExemplo.Tests.Unidade.csproj
+      ├── UnitTest1.cs
+      └── Usings.cs
 ```
 
 **Status:** ✅ Pronto para começar a escrever testes!
