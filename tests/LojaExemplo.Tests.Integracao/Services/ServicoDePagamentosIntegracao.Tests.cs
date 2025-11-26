@@ -3,7 +3,7 @@ using LojaExemplo.Servicos;
 using LojaExemplo.Repositorios;
 using LojaExemplo.Modelos;
 
-namespace LojaExemplo.Testes.Integracao
+namespace LojaExemplo.Tests.Integracao
 {
     public class ServicoDePagamentosIntegracaoTests
     {

@@ -7,9 +7,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LojaExemplo", "src\LojaExem
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{856EECB8-8C0E-4B96-9451-1EC9F0C936F8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LojaExemplo.Integracao", "tests\Integracao\LojaExemplo.Integracao.csproj", "{D5563953-47F3-42C5-B2FF-B264A00F9CB9}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LojaExemplo.Tests.Integracao", "tests\LojaExemplo.Tests.Integracao\LojaExemplo.Tests.Integracao.csproj", "{D5563953-47F3-42C5-B2FF-B264A00F9CB9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LojaExemplo.Unidade", "tests\Unidade\LojaExemplo.Unidade.csproj", "{87BC59B6-E643-418A-B065-81094B1D0DCD}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LojaExemplo.Tests.Unidade", "tests\LojaExemplo.Tests.Unidade\LojaExemplo.Tests.Unidade.csproj", "{87BC59B6-E643-418A-B065-81094B1D0DCD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

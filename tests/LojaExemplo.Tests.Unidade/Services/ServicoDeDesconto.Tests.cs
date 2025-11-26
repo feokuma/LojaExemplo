@@ -1,7 +1,7 @@
 using Xunit;
 using LojaExemplo.Servicos;
 
-namespace LojaExemplo.Unidade
+namespace LojaExemplo.Tests.Unidade
 {
     public class ServicoDeDescontoTests
     {

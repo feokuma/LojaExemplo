@@ -4,7 +4,7 @@ using LojaExemplo.Servicos;
 using LojaExemplo.Modelos;
 using LojaExemplo.Repositorios;
 
-namespace LojaExemplo.Unidade
+namespace LojaExemplo.Tests.Unidade
 {
     public class ServicoDePagamentosTests
     {
