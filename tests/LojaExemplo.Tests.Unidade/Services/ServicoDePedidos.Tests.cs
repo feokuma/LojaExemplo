@@ -3,7 +3,7 @@ using LojaExemplo.Servicos;
 using LojaExemplo.Repositorios;
 using LojaExemplo.Modelos;
 
-namespace LojaExemplo.Tests.Unidade
+namespace LojaExemplo.Tests.Unidade.Services
 {
     public class ServicoDePedidosTests
     {
