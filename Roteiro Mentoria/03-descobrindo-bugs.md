@@ -3,10 +3,25 @@
 ## 🎯 Objetivo
 Demonstrar como a IA pode identificar bugs através da criação de testes com dados concretos.
 
+## 💡 Regra correta reportada pelo time de negócios
+
+O time de negócios definiu que o cálculo do desconto progressivo deve seguir a seguinte lógica:
+
+Os cenários abaixo deve ser configurados no teste
+
+```csharp
+        [InlineData(100.00, 10, 10.00)]      // 100 * 10/100 = 10
+        [InlineData(200.00, 20, 40.00)]      // 200 * 20/100 = 40
+        [InlineData(500.00, 5, 25.00)]       // 500 * 5/100 = 25
+        public async Task CalcularDescontoProgressivoAsync_ComVariosValores_DeveCalcularCorretamente
+```
+
+Ou seja, o valor do desconto deve ser sempre o resultado de `valorTotal * percentualDesconto / 100`. Esses exemplos deixam claro como o cálculo deve funcionar para diferentes valores e percentuais, garantindo que a regra de negócio seja aplicada corretamente em todos os casos.
+
 ## 📋 Prompt para usar
 
 ```text
-Crie testes com dados concretos para o método CalcularDescontoProgressivoAsync:
+Ajuste a regra somente nos testes para o método CalcularDescontoProgressivoAsync para:
 - valorTotal: 100, percentual: 10 (esperado: desconto de R$ 10)
 - valorTotal: 200, percentual: 20 (esperado: desconto de R$ 40)
 - valorTotal: 500, percentual: 5 (esperado: desconto de R$ 25)
