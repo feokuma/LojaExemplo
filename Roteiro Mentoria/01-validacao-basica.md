@@ -6,7 +6,7 @@ Demonstrar testes simples de lógica de negócio sem dependências externas, foc
 ## 📋 Prompt para usar
 
 ```text
-Crie testes unitários completos para a classe Pedido em src/Modelos/Pedido.cs. 
+Crie testes unitários completos para a classe Pedido em src/Modelos/Pedido.cs seguindo a mesma estrutura de diretórios do src no tests utilizando xunit. 
 Inclua testes para os métodos Confirmar(), Cancelar(), PodeCancelar() e 
 DeveReporEstoque(), cobrindo todos os cenários possíveis de transição de status.
 ```
